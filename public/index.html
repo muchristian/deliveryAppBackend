@@ -1,0 +1,22 @@
+<html>
+<head>
+    <title>well done</title>
+    </head>
+    <body>
+        how is it doing
+    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
+    <script>
+        let socket = io.connect('http://localhost:3000');
+        socket.on("new deliver request", data => {
+            socket.emit("new del req", data);
+            console.log(data);
+        })
+        socket.on("deliver request list", data => {
+            console.log(data)
+        })
+        socket.on('message', data => {
+            console.log(data);
+        })
+    </script>
+</html>
