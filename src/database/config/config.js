@@ -1,6 +1,5 @@
-const urlParser = require('url');
-const url = 'postgres://pbtasqbfxoatwa:e8d10a0739a758ae89ff3fac38de6cc22ab98da6f2403c8cc8ba018fe3cbd08f@ec2-54-159-112-44.compute-1.amazonaws.com:5432/d3lvoavj269lid'
-const q = urlParser.parse(url, true);
+const url = require('url');
+const q = url.parse(process.env.DATABASE_URL, true);
 
 module.exports = {
   development: {
