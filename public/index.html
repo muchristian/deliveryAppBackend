@@ -7,16 +7,35 @@
     </body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.3.0/socket.io.js"></script>
     <script>
-        let socket = io.connect('http://localhost:3000');
-        socket.on("new deliver request", data => {
-            socket.emit("new del req", data);
-            console.log(data);
-        })
-        socket.on("deliver request list", data => {
-            console.log(data)
-        })
-        socket.on('message', data => {
-            console.log(data);
-        })
+        async function getResp() {
+            try {
+        const response = await fetch('http://127.0.0.1:3000/', {
+            method: 'GET', // *GET, POST, PUT, DELETE, etc.
+            mode: 'cors', // no-cors, *cors, same-origin
+            cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+            credentials: 'same-origin', // include, *same-origin, omit
+            headers: {
+              'x-api-key': 'cbka87f7ud6pppp07hy2eyyl4jf5o2'
+              // 'Content-Type': 'application/x-www-form-urlencoded',
+            }
+        });
+        console.log(response)
+    } catch (err) {
+        console.log(err)
+    }
+        }
+        getResp()
+        
+        // let socket = io.connect('http://localhost:3000');
+        // socket.on("new deliver request", data => {
+        //     socket.emit("new del req", data);
+        //     console.log(data);
+        // })
+        // socket.on("deliver request list", data => {
+        //     console.log(data)
+        // })
+        // socket.on('message', data => {
+        //     console.log(data);
+        // })
     </script>
 </html>

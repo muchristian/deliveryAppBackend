@@ -1,57 +1,95 @@
-import DriverServices from '../services/DriverService';
-import Validation from '../utils/Validation';
-import jwtUtils from '../utils/authUtil';
+import DriverService from "../services/DriverService";
+import VehicleService from "../services/VehicleService";
+import DocumentService from "../services/DocumentService";
+import fs from 'fs';
+import path from 'path';
+import _ from 'lodash';
+import authUtils from "../utils/authUtil";
 
-const { DriverRegValidation } = Validation;
-const { hashPassword } = jwtUtils;
-
+const newFilePath = (filePath) => {
+  const rm = path.join(__dirname, '..', '..', 'public')
+  const newpath = filePath.replace(rm, '')
+  return newpath
+}
 export default class driverController {
-
-    static async registerDriver(req, res) {
+  static async registerDriver(req, res) {
+    // console.log("=====")
+    // console.log(req.userData)
+    // console.log(req.body)
+    // console.log(req.files.driverAvatar[0])
+    // const rm = path.join(__dirname, '..', '..', 'public')
+    // console.log(rm)
+    // const newpath = req.files.driverAvatar[0].path.replace(rm, '')
+    // res.send(newpath)
     const { error } = DriverRegValidation(req.body);
     if (error) {
       res.status(400).send(error.details);
     }
     try {
-      const { email } = req.body;
-    const findDriver = await DriverServices.getOneBy({ email: email.toLowerCase() });
+      const { email, password } = req.body;
+      const { id:user_id } = req.userData;
+      const { driverAvatar, documents } = req.files;
+      const findDriver = await DriverService.getOneBy({ email: email.toLowerCase() });
       if (findDriver) {
         return res.status(400).json({
-          message: "User with that email already exist",
+          message: "Driver with that email already exist",
         });
       }
-      const hashedPassword = await hashPassword(req.body.password);
-      const data = {
-        ...req.body,
-        password: hashedPassword
+
+      // let fileObj = {}
+      // if (req.file) {
+      //   fileObj = {
+      //     ...req.body,
+
+      //   }
+      //   fileObj.logo_mimetype = req.file.mimetype;
+      //   fileObj.logo_fileName = req.file.originalname,
+      //   fileObj.logo = 
+      // }
+      const hashedPassword = await hashPassword(password);
+      const driverRes = await DriverService.saveAll(
+        {
+          ..._.pick(req.body, ['firstName', 'lastName', 'email', 'phoneNumber', 'idNumber']),
+          avatar_mimetype: driverAvatar[0].mimetype,
+          avatar_fileName: driverAvatar[0].originalName,
+          avatar: newFilePath(driverAvatar[0].path),
+          password: hashedPassword,
+          createdBy: user_id,
+          api_createdAt: moment(new Date()).format()     
+        });
+
+      const { dataValues:driverData } = driverRes;
+      
+      const vehicleRes =  await VehicleService.saveAll({
+        ..._.pick(req.body, ['vehicleType', 'plateNber', 'yellowCard']),
+        driverId: driverData.uuid
+      });
+
+      const { dataValues:vehicleData } = vehicleRes;
+      
+      if (documents.length > 0) {
+        for (const document of documents) {
+        await DocumentService.saveAll({
+          vehicleId: vehicleData.uuid,
+          document_mimetype: document.mimetype,
+          document_fileName: document.originalName,
+          document: newFilePath(document[0].path)
+        })
+        }
       }
-      console.log(data);
-      await DriverServices.saveAll({...req.body, password: hashedPassword});
+      await sendMail(customer.customerEmail, 
+        customer.customerFname, trackNber);
       return res.status(200).json({
         message: "Well done! Driver is successfully registed"
       })
     } catch(e) {
       console.log(e)
         return res.status(400).json({
-            message: "Something went wrong with Driver registration"
+            message: "Something went wrong with Driver registration",
+            error: e
         })
     }
-    }
+  } 
 
-    static async updateDriver(req, res) {
-      console.log(req.params)
-      try {
-        const findDriver = await DriverServices.getOneBy({phoneNumber: req.params});
-        const data = await DriverServices.updateBy({...req.body}, {phoneNumber: req.params});
-        return res.status(200).json({
-          message: "Driver credentials updated successfully",
-          data
-      })
-      } catch(e) {
-        return res.status(400).json({
-          message: "Check if a driver with that phone nber exist"
-      })
-      }
-    }
+} 
 
-}

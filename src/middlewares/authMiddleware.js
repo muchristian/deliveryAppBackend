@@ -25,11 +25,11 @@ class authMiddleware {
                     message: 'You have already signed out'
                 })
             }
-            if (user.is_verified < 1) {
-                return res.status(401).json({
-                    message: 'Please check if you have verified your account first'
-                })
-            }
+            // if (user.is_verified < 1) {
+            //     return res.status(401).json({
+            //         message: 'Please check if you have verified your account first'
+            //     })
+            // }
             req.sessionUser = decodedToken;
             return next();
           });
@@ -40,22 +40,17 @@ class authMiddleware {
         }
       }
 
-      isCustomer = (req, res, next) => {
-        if (req.sessionUser.role === 'CUSTOMER') {
-          return next()
+      isRole = (passedInRole) => {
+        return (req, res, next) => {
+          const { role } = req.sessionUser;
+          if (role === passedInRole) {
+            req.userData = req.sessionUser;
+            return next()
+          }
+          return res.status(401).json({
+            message: `Only ${passedInRole} can access this endpoint`
+          })
         }
-        return res.status(401).json({
-          message: 'Only customer can access this endpoint'
-        })
-      }
-
-      isAdmin = (req, res, next) => {
-        if (req.sessionUser.role === 'ADMIN') {
-          return next()
-        }
-        return res.status(401).json({
-          message: 'Only admin can access this endpoint'
-        })
       }
 }
 

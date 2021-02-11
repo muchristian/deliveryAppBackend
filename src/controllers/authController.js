@@ -1,9 +1,11 @@
 import UserServices from "../services/UserService";
 import DriverServices from "../services/DriverService";
 import authUtils from "../utils/authUtil";
+import {resetMessage, changedMessage} from "../utils/emailMessages";
 import Validation from "../utils/Validation";
 import _ from 'lodash';
 import redisClient from '../redis.config';
+import sendMail from '../utils/mailUtil';
 
 const { hashPassword, isPasswordTrue, generateToken } = authUtils;
 const { SignupValidation, LoginValidation } = Validation;
@@ -16,18 +18,19 @@ export default class authController {
 
     try {
       const { email, password } = req.body;
-      const findUser = await UserServices.getOneBy({ email: email.toLowerCase() });
-      if (findUser) {
-        return res.status(400).json({
-          message: "User with that email already exist",
-        });
-      }
+      const checkEmail = await UserServices.getOneBy({ email: email.toLowerCase() });
+      // const checkUsername = await UserService.getOneBy({ username });
+    if (checkEmail) {
+      return res.status(400).json({
+        message: "User with that email already exist",
+      });
+    }
       const hashedPassword = await hashPassword(password);
       const userData = {
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        phoneNumber: req.body.phoneNumber,
-        email: req.body.email.toLowerCase(),
+        // firstName: req.body.firstName,
+        // lastName: req.body.lastName,
+        // phoneNumber: req.body.phoneNumber,
+        email: email.toLowerCase(),
         password: hashedPassword
       };
       const savedUser = await UserServices.saveAll(userData);
@@ -50,15 +53,17 @@ export default class authController {
     }
     try {
       const { email, password } = req.body;
-      
-      let findUser = await UserServices.getOneBy({ email: email });
+      console.log(email)
+      console.log(password)
+      let findUser = await UserServices.getOneBy({ email: email.toLowerCase() });
       if (!findUser) {
-        findUser = await DriverServices.getOneBy({ email: email })
+        findUser = await DriverServices.getOneBy({ email: email.toLowerCase() })
       }
       const { dataValues } = findUser;
+      console.log(dataValues)
       if (!await isPasswordTrue(password, dataValues.password)) {
         return res.status(400).json({
-          message: "The password provided doesnt match with the email"
+          message: "The password provided doesn't match with your email"
         });
       }
         return res.status(200).json({
@@ -66,11 +71,16 @@ export default class authController {
           token: generateToken(dataValues)
         });
     } catch (err) {
+      console.log(err)
       return res.status(401).json({
         message: "The provided credentials not found",
       });
     }
   };
+
+  static async resetToken() {
+    
+  }
 
   static async sendResetEmail(req, res) {
     const { email } = req.body;
@@ -83,33 +93,32 @@ export default class authController {
         const token = generateToken(user);
         const url = `${token}`;
         await sendMail(user.email, user.firstName, intro, instruction, text, url);
-        return successResponse(res, statusCodes.ok, customMessages.resetEmail, token);
+        return res.status(200).json({
+          message: "Reset email has been successfully sent",
+          token: token
+        });
       }
-      return errorResponse(res, statusCodes.forbidden, customMessages.notExistUser);
+      return res.status(401).json({
+        message: "Something went wrong, try again",
+      });
   }
 
   static async updatePassword(req, res) {
     const { token } = req.params;
     const { password } = req.body;
-    const {
-      intro, instruction, text
-    } = changedMessage;
+    // const {
+    //   intro, instruction, text
+    // } = changedMessage;
 
     const userDetails = await decodeToken(token);
     const users = await UserService.getOneBy({ email: userDetails.email });
     const user = users.dataValues;
     const hashedPassword = await hashPassword(password);
     await UserService.updateBy({ password: hashedPassword }, { id: user.id });
-    await sendMail(user.email, user.firstName, intro, instruction, text, '#');
-    return updatedResponse(res, statusCodes.ok, customMessages.changed);
-  }
-
-  static async verify(req, res) {
-    const { token } = req.query;
-    const decoded = jwtDecode(token);
-    const { email } = decoded;
-    await UserService.updateBy({ isVerified: true }, { email });
-    return successResponse(res, statusCodes.ok, customMessages.verifyMessage);
+    // await sendMail(user.email, user.firstName, intro, instruction, text, '#');
+    return res.status(200).json({
+      message: "Well done! You have successfully updated your password"
+    });
   }
 
   static logout(req, res) {

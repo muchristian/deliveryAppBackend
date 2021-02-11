@@ -1,20 +1,37 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('drivers', {
-      id: {
+    await queryInterface.createTable('shops', {
+      uuid: {
         type: Sequelize.UUID,
     defaultValue: Sequelize.UUIDV4,
     primaryKey: true,
     allowNull: false
       },
-      firstName: {
+      apiFeatureId: {
+        allowNull: false,
+        type: Sequelize.UUID,
+        onUpdate: 'CASCADE',
+        references: {
+          model: 'api_features',
+          key: 'uuid',
+        },
+      },
+      name: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      lastName: {
+      logo_mimetype: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: true
+      },
+      logo_fileName: {
+        type: Sequelize.STRING,
+        allowNull: true
+      },
+      logo: {
+        type: Sequelize.TEXT,
+        allowNull: true
       },
       email: {
         type: Sequelize.STRING,
@@ -24,37 +41,29 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false
       },
-      idNumber: {
-        type: Sequelize.STRING,
-        allowNull: true
-      },
-      password: {
+      apiKey: {
         type: Sequelize.STRING,
         allowNull: false
       },
-      avatar_mimetype: {
+      host: {
         type: Sequelize.STRING,
-        allowNull: true
+        allowNull: false
       },
-      avatar_fileName: {
-        type: Sequelize.STRING,
-        allowNull: true
+      countApiUsage: {
+        type: Sequelize.INTEGER,
+        defaultValue: 0
       },
-      avatar: {
-        type: Sequelize.TEXT,
-        allowNull: true
-      },
-      role: {
-        type: Sequelize.STRING,
-        defaultValue: 'DRIVER'
-      },
-      isOpen: {
+      isActive: {
         type: Sequelize.INTEGER,
         defaultValue: 1
       },
+      api_createdAt: {
+        allowNull: false,
+        type: Sequelize.DATE
+      },
       createdBy: {
-        type: Sequelize.UUID,
-        allowNull: false
+        allowNull: false,
+        type: Sequelize.UUID
       },
       createdAt: {
         allowNull: false,
@@ -67,6 +76,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('drivers');
+    await queryInterface.dropTable('shops');
   }
 };

@@ -73,6 +73,11 @@ const validateWhereCondition = whereCondition => {
           });
           return result;
       }
+
+      getAll = async (attr) => {
+        const foundRes = await this.model.findAll(attr);
+        return foundRes;
+      }
       
       /**
      * @param {object} whereCondition
@@ -85,6 +90,11 @@ const validateWhereCondition = whereCondition => {
      */
     getOneBy = async (whereCondition) => {
       const foundRes = await this.model.findOne({ where: whereCondition });
+      return foundRes;
+    }
+
+    getOneByInclude = async (whereCondition, includeArray) => {
+      const foundRes = await this.model.findOne({ where: whereCondition, include: includeArray});
       return foundRes;
     }
   

@@ -1,40 +1,44 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('deliver_requests', {
+    await queryInterface.createTable('request_details', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    primaryKey: true,
+    allowNull: false
       },
-      sender: {
+      requestId: {
         allowNull: false,
-        type: Sequelize.INTEGER,
+        type: Sequelize.UUID,
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         references: {
-          model: 'users',
+          model: 'requests',
           key: 'id',
         },
       },
-      driverId: {
-        allowNull: true,
-        type: Sequelize.INTEGER,
+      productId: {
+        allowNull: false,
+        type: Sequelize.UUID,
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         references: {
-          model: 'drivers',
+          model: 'products',
           key: 'id',
         },
       },
-      mode: {
+      sku: {
         type: Sequelize.STRING,
-        allowNull: true,
+        allowNull: true
       },
-      isApproved: {
+      price: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      quantity: {
         type: Sequelize.INTEGER,
-        defaultValue: 0
+        allowNull: false
       },
       createdAt: {
         allowNull: false,
@@ -47,6 +51,6 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('deliver_requests');
+    await queryInterface.dropTable('request_details');
   }
 };

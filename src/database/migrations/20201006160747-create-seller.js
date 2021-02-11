@@ -1,24 +1,18 @@
 'use strict';
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.createTable('prod_receivers', {
+    await queryInterface.createTable('sellers', {
       id: {
-        allowNull: false,
-        autoIncrement: true,
-        primaryKey: true,
-        type: Sequelize.INTEGER
+        type: Sequelize.UUID,
+    defaultValue: Sequelize.UUIDV4,
+    primaryKey: true,
+    allowNull: false
       },
-      deliverReqId: {
-        allowNull: false,
-        type: Sequelize.INTEGER,
-        onDelete: 'CASCADE',
-        onUpdate: 'CASCADE',
-        references: {
-          model: 'deliver_requests',
-          key: 'id',
-        },
+      fullName: {
+        type: Sequelize.STRING,
+        allowNull: false
       },
-      name: {
+      email: {
         type: Sequelize.STRING,
         allowNull: false
       },
@@ -27,6 +21,10 @@ module.exports = {
         allowNull: false
       },
       address: {
+        type: Sequelize.STRING,
+        allowNull: false
+      },
+      shopName: {
         type: Sequelize.STRING,
         allowNull: false
       },
@@ -39,8 +37,9 @@ module.exports = {
         type: Sequelize.DATE
       }
     });
+    await queryInterface.addIndex('sellers', ['shopName']);
   },
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.dropTable('prod_receivers');
+    await queryInterface.dropTable('sellers');
   }
 };

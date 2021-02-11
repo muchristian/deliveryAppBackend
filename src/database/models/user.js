@@ -1,12 +1,17 @@
 module.exports = (sequelize, DataTypes) => {
   const user = sequelize.define('user', {
+    uuid: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true
+    },
     firstName: DataTypes.STRING,
     lastName: DataTypes.STRING,
     email: DataTypes.STRING,
     phoneNumber: DataTypes.STRING,
     password: DataTypes.STRING,
-    is_verified: DataTypes.INTEGER,
-    email_verified_at: DataTypes.DATE,
+    address: DataTypes.STRING,
+    avatar: DataTypes.TEXT,
     role: DataTypes.ENUM(
       'ADMIN', 
       'CUSTOMER'
@@ -16,11 +21,6 @@ module.exports = (sequelize, DataTypes) => {
     modelName: 'user',
   });
   user.associate = (models) => {
-    user.hasMany(models.deliver_request, {
-      foreignKey: 'sender',
-      onDelete: 'CASCADE',
-      onUpdate: 'CASCADE'
-    })
   }
   return user;
 };
